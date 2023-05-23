@@ -174,7 +174,12 @@ class SpaceTraders:
         self.cur.execute("""CREATE TABLE IF NOT EXISTS FACTIONS (SYMBOL CHARACTER varying NOT NULL, name CHARACTER varying, description CHARACTER varying, headquarters CHARACTER varying,  traits CHARACTER varying[], PRIMARY KEY (SYMBOL));""")
         self.cur.execute("""CREATE TABLE IF NOT EXISTS SURVEYS (signature CHARACTER varying,symbol CHARACTER varying,deposits CHARACTER varying[],expiration CHARACTER varying,size CHARACTER varying,timestamp CHARACTER varying,PRIMARY KEY (signature))""")
         self.cur.execute("""CREATE TABLE IF NOT EXISTS EXTRACTIONS (shipSymbol CHARACTER varying,symbol CHARACTER varying,units CHARACTER varying[],timestamp CHARACTER varying, PRIMARY KEY (shipSymbol,timestamp))""")
+
+
         self.conn.commit()
+
+        # self.cur.execute("""CREATE VIEW recent_prices AS SELECT DISTINCT ON (waypointsymbol, symbol) waypointsymbol, symbol, purchase, sell, "timestamp" FROM prices ORDER BY waypointsymbol, symbol, "timestamp" DESC;""")
+        # self.conn.commit()
         # endregion
 
         while True:

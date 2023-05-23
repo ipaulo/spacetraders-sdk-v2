@@ -1,4 +1,9 @@
+# upstream
 ratelimit
 requests
 python-dotenv
 psycopg2
+
+# iPaulo
+rich
+typer

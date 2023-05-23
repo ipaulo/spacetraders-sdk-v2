@@ -2,6 +2,10 @@
 systems.json
 oldsystems
 
+# venv
+pyvenv.cfg
+Scripts/
+
 .vscode
 # Byte-compiled / optimized / DLL files
 __pycache__/
