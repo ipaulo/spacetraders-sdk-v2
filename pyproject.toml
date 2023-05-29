@@ -1,0 +1,9 @@
+[tool.ruff]
+
+include = ["*.py"]
+extend-exclude = ["Include/*", "Scripts/*"]
+
+select = [
+  "E",   # pycodestyle
+  "F",   # pyflakes
+]
