@@ -5,16 +5,18 @@ from enums import ShipNavStatus
 from objects import Ship
 import threading
 
+ASTEROID = 'X1-VS75-93799Z'
+
 def mine(st:SpaceTraders, ship:Ship):
     cd = st.Get_Cooldown(ship.symbol)
-    if ship.nav.waypointSymbol != "X1-UY52-72325C":
+    if ship.nav.waypointSymbol != ASTEROID:
         if ship.nav.status != ShipNavStatus.IN_TRANSIT:
-            nav,_ = st.Navigate(ship.symbol,"X1-UY52-72325C")
+            nav,_ = st.Navigate(ship.symbol,ASTEROID)
         st.sleep_till(nav=nav)
     while True:
-        st.Get_Market("X1-UY52-72325C")
+        st.Get_Market(ASTEROID)
         ship = st.ships[ship.symbol]
-        if cd!=None:
+        if cd is not None:
             st.sleep_till(cooldown=cd)
         surveys = st.sort_surveys_by_worth(st.get_surveys_for(ship.nav.waypointSymbol))
         if len(surveys)<1 or surveys[0][1]<40:
@@ -25,7 +27,7 @@ def mine(st:SpaceTraders, ship:Ship):
             if ship.nav.status != ShipNavStatus.IN_ORBIT:
                 st.Orbit(ship.symbol)
             extract,cargo,cd = st.Extract(ship.symbol,st.surveys[surveys[0][0]])
-            if extract!=None:
+            if extract is not None:
                 st.Dock(ship.symbol)
                 st.Sell(ship.symbol,extract.yield_.symbol,extract.yield_.units)
 

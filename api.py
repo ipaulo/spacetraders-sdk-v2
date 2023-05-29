@@ -1194,22 +1194,44 @@ if __name__ == "__main__":
     st.Init_Systems()
     # st.Purchase_Ship("SHIP_ORE_HOUND","X1-UY52-72027D")
     st.Get_Ships()
-    ship = list(st.ships.values())[0]
+    # ships = list(st.ships.values())
+    # ship = list(st.ships.values())[0]
+
+    # ships = list(st.ships.values())
+    # miners = [ship.symbol for ship in ships if ship.miner]
+    # print(miners)
 
     # survey = Survey(json.loads('{"signature": "X1-UY52-72325C-B211DC","symbol": "X1-UY52-72325C","deposits": [{"symbol": "SILVER_ORE"},{"symbol": "ICE_WATER"},{"symbol": "ICE_WATER"}],"expiration": "2023-05-21T00:15:59.841Z","size": "MODERATE"}'))
     # pprint(st.Extract(ship.symbol,survey))
     # nav, fuel = st.Navigate(ship.symbol, "X1-UY52-72325C")
     # st.sleep_till(nav)
     # st.Get_Shipyard("X1-UY52-72027D")
-    # gate = st.Get_JumpGate("X1-AC10-73119Z")
+    TEST_SYSTEM = "X1-VS75"
+    TEST_WAYPOINT = "X1-VS75-93799Z"
+
+    # ## JUMP TEST 
+    # gate = st.Get_JumpGate(TEST_WAYPOINT)
     # pprint(gate.connectedSystems[0:10])
-    # wps,_ = st.Get_Waypoints("X1-SR51")
+    
+    # closest = gate.connectedSystems[0].symbol
     # warpGoal = ""
-    # for w in wps:
-    #     if st.waypoints[w].type == WaypointType.JUMP_GATE:
-    #         warpGoal=w
-    #         break
-    # pprint(st.Jump(ship.symbol,"X1-AC10"))
+    # for systemsym in gate.connectedSystems:
+    #     wps,_ = st.Get_Waypoints(systemsym.symbol)
+    #     pprint(wps) 
+    #     for w in wps:
+    #         if st.waypoints[w].type == WaypointType.JUMP_GATE:
+    #             warpGoal=w
+    #             pprint(warpGoal)
+    #             pprint(st.Jump(ship.symbol,closest))
+    #             break
+    #         else:
+    #             # should look at connectedSystems[1... etc]
+    #             pass
+    #             pprint(f'no jump_gate in closest system {closest}')
+    # ## END JUMP TEST
+    
+    exit()
+    # 
     # pprint(st.Warp(ship.symbol,"X1-AC10-73119Z"))
     time.sleep(1)
     if True:
