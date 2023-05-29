@@ -1,4 +1,7 @@
 from api import *
+import logging
+import os 
+import psycopg2
 
 from rich import print
 from rich.progress import track
@@ -48,28 +51,21 @@ def ship_command_argument(symbol):
         myships = [symbol.upper()]
     return myships
 
-# region Fly recon 
-@app.command()
-def recon(symbol: str):
-    """Send ship SYMBOL (ex: LEELOO-1) to all markets and shipyards in the ship's current system."""
-    thisship = st.Get_Ship(symbol)
-    _Recon_System(thisship)
 
 
 def _Recon_System(reconship: Ship):
     shipsymbol = reconship.symbol
     cur_wayp = reconship.nav.waypointSymbol
 
-    st.cur.execute(
+    mycursor.execute(
         """select symbol from waypoints where 'MARKETPLACE' = any (traits)"""
     )
-    st.conn.commit()
-    markets = [p[0] for p in st.cur.fetchall()]
+    markets = [p[0] for p in mycursor.fetchall()]
 
-    st.cur.execute("""select symbol from waypoints where 'SHIPYARD' = any (traits)""")
-    st.conn.commit()
-    shipyards = [p[0] for p in st.cur.fetchall()]
+    mycursor.execute("""select symbol from waypoints where 'SHIPYARD' = any (traits)""")
 
+    shipyards = [p[0] for p in mycursor.fetchall()]
+    logger.info(shipyards)
     destinations = shipyards + markets
 
     if cur_wayp in destinations:
@@ -92,6 +88,14 @@ def _Recon_System(reconship: Ship):
                 pprint(st.Get_Shipyard(cur_wayp).ships)
             if wayp in markets:
                 st.Get_Market(wayp)
+
+# region Fly recon 
+@app.command()
+def recon(symbol: str):
+    """Send ship SYMBOL (ex: LEELOO-1) to all markets and shipyards in the ship's current system."""
+    logger.info(f"{symbol} doing recon")
+    thisship = st.Get_Ship(symbol)
+    _Recon_System(thisship)
 
 
 def fly_to_markets():
@@ -118,19 +122,11 @@ def fly_to_markets():
 
 # region mine stuff
 
-# region mine helpers
-def has_mining_laser(mountlist: list):
-    for mount in mountlist:
-        if "MINING" in mount.symbol:
-            return mount.symbol
         
 def all_mining_ships(st: SpaceTraders):
-    st.cur.execute(
-        """select symbol from public.ships where role IN ('EXCAVATOR', 'COMMAND')"""
-    )
-    st.conn.commit()
-    ships = [row[0] for row in st.cur.fetchall()]
-    return ships
+    ships = list(st.ships.values())
+    miners = [ship.symbol for ship in ships if ship.miner]
+    return miners
 
 # endregion
 
@@ -202,13 +198,35 @@ def test():
     '''Scratch code goes here to run'''
     print(all_mining_ships(st))
 
-if __name__ == "__main__":
 
+
+def db_connection():
+
+    try:
+        user = os.getenv("USER")
+        db = os.getenv("DB")
+        ip = os.getenv("IP")
+        port = os.getenv("PORT")
+
+        conn = psycopg2.connect(
+            dbname=db, user=user, password=os.getenv("PASSWORD"), host=ip, port=port
+        )
+    except psycopg2.Error as e:
+            logger.info("Boom")
+
+    return conn.cursor()
+
+
+if __name__ == "__main__":
+    logger.info(f'iTraders started')
     st = SpaceTraders()
     st.Status()
     st.Login(os.getenv("TOKEN"))
     st.Get_Ships()
+
     
+    mycursor = db_connection()
+    logger.info(mycursor)
     # st.cur.execute(
     #     """CREATE VIEW my_view AS
     #         SELECT DISTINCT ON (waypointsymbol, symbol)
