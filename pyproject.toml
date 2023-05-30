@@ -1,6 +1,6 @@
 [tool.ruff]
 
-include = ["*.py"]
+include = ["itraders.py"]
 extend-exclude = ["Include/*", "Scripts/*"]
 
 select = [

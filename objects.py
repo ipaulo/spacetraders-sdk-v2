@@ -470,6 +470,9 @@ class WaypointTrait:
             + self.description
             + "')"
         )
+    
+    def __contain__(self,item):
+         return any(trait.name == item for trait in self.traits)
 
 
 @dataclass

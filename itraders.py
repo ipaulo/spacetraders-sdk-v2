@@ -1,7 +1,7 @@
 from api import *
 import logging
 import os 
-import psycopg2
+from collections import OrderedDict
 
 from rich import print
 from rich.progress import track
@@ -34,6 +34,7 @@ logger.addHandler(console_handler)
 
 # endregion
 
+
 def all_ships():
     resp = client.fleet.get_my_ships().parsed.data
     myships = []
@@ -51,23 +52,59 @@ def ship_command_argument(symbol):
         myships = [symbol.upper()]
     return myships
 
+def systemSymbol(waypointsymbol: str):
+    return '-'.join(waypointsymbol.split('-')[:2])
 
+def interesting_traits(waypoint: str):
+    special_traits = []
+    for trait in st.waypoints[waypoint].traits:
+        if 'Marketplace' == trait.name:
+            special_traits.append('market')
+        elif 'Shipyard' == trait.name:
+            special_traits.append('shipyard')
+    return special_traits
 
 def _Recon_System(reconship: Ship):
+   
     shipsymbol = reconship.symbol
+    logger.info(f'Ship {shipsymbol}')
     cur_wayp = reconship.nav.waypointSymbol
+    cur_system = systemSymbol(cur_wayp)
+    st.Get_Waypoints(cur_system)
+    logger.info(f'waypoint {cur_wayp} in {cur_system}')
 
-    mycursor.execute(
-        """select symbol from waypoints where 'MARKETPLACE' = any (traits)"""
-    )
-    markets = [p[0] for p in mycursor.fetchall()]
+    systemwaypoints = st.systems[cur_system].waypoints
 
-    mycursor.execute("""select symbol from waypoints where 'SHIPYARD' = any (traits)""")
+    result = {waypoint.symbol: (waypoint.x, waypoint.y)
+              for waypoint in systemwaypoints}
 
-    shipyards = [p[0] for p in mycursor.fetchall()]
-    logger.info(shipyards)
-    destinations = shipyards + markets
+    print(result)
+    current_coord = result[cur_wayp]
+    for key, coord in result.items():
+        print(key,coord)
+    
+    exit()
+    waypointsymbols = [waypoint.symbol for waypoint in systemwaypoints]
+    print(waypointsymbols)
+    markets = []
+    shipyards = []
 
+    destinations = OrderedDict()
+    # print(interesting_traits(cur_wayp))
+
+    interesting = interesting_traits(cur_wayp)
+    if interesting: 
+        interesting_traits(cur_wayp)
+    destinations.update(interesting_traits(cur_wayp))
+    waypointsymbols.remove(cur_wayp)
+
+    for waypoint in waypointsymbols:
+        destinations.update(interesting_traits(waypoint))
+
+    # destinations = shipyards + markets
+    
+    print(destinations)
+    # exit()
     if cur_wayp in destinations:
         if cur_wayp in shipyards:
             # use this until Get_shipyard puts data into database
@@ -78,6 +115,7 @@ def _Recon_System(reconship: Ship):
 
     # TODO check for recent data before flying to a market
     for wayp in destinations:
+
         navdata = st.Navigate(shipsymbol, wayp)
         if navdata:
             nav, _ = navdata
@@ -222,11 +260,12 @@ if __name__ == "__main__":
     st = SpaceTraders()
     st.Status()
     st.Login(os.getenv("TOKEN"))
+    st.Init_Systems()
     st.Get_Ships()
-
+    time.sleep(2)
     
-    mycursor = db_connection()
-    logger.info(mycursor)
+    # mycursor = db_connection()
+    # logger.info(mycursor)
     # st.cur.execute(
     #     """CREATE VIEW my_view AS
     #         SELECT DISTINCT ON (waypointsymbol, symbol)
