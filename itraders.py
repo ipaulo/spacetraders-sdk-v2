@@ -1,6 +1,7 @@
 from api import *
 import logging
-import os 
+import os
+import math
 from collections import OrderedDict
 
 from rich import print
@@ -52,37 +53,66 @@ def ship_command_argument(symbol):
         myships = [symbol.upper()]
     return myships
 
+
 def systemSymbol(waypointsymbol: str):
-    return '-'.join(waypointsymbol.split('-')[:2])
+    return "-".join(waypointsymbol.split("-")[:2])
+
 
 def interesting_traits(waypoint: str):
     special_traits = []
+    print("finding traits calls api?")
     for trait in st.waypoints[waypoint].traits:
-        if 'Marketplace' == trait.name:
-            special_traits.append('market')
-        elif 'Shipyard' == trait.name:
-            special_traits.append('shipyard')
+        if "Marketplace" == trait.name:
+            special_traits.append("market")
+        elif "Shipyard" == trait.name:
+            special_traits.append("shipyard")
     return special_traits
 
-def _Recon_System(reconship: Ship):
-   
-    shipsymbol = reconship.symbol
-    logger.info(f'Ship {shipsymbol}')
-    cur_wayp = reconship.nav.waypointSymbol
+
+def recon_traits(waypointsymbol: str, waypointtraits: list):
+    print("right here", waypointtraits)
+
+    if "market" in waypointtraits:
+        st.Get_Market(waypointsymbol)
+
+    if "shipyard" in waypointtraits:
+        st.Get_Shipyard(waypointsymbol)
+
+
+def _Recon_System(thisship: Ship):
+    """
+    thisship flies to all all markets and shipyards in current system
+
+
+    """
+    shipsymbol = thisship.symbol
+
+    cur_wayp = thisship.nav.waypointSymbol
     cur_system = systemSymbol(cur_wayp)
     st.Get_Waypoints(cur_system)
-    logger.info(f'waypoint {cur_wayp} in {cur_system}')
+    logger.info(f"waypoint {cur_wayp} in {cur_system}")
 
     systemwaypoints = st.systems[cur_system].waypoints
 
-    result = {waypoint.symbol: (waypoint.x, waypoint.y)
-              for waypoint in systemwaypoints}
+    result = {waypoint.symbol: (waypoint.x, waypoint.y) for waypoint in systemwaypoints}
+    # result = {
+    # 'X1-GT12-34750B': (17, 18),
+    # 'X1-GT12-50851D': (17, 18),
+    # }
 
-    print(result)
     current_coord = result[cur_wayp]
+
     for key, coord in result.items():
-        print(key,coord)
-    
+        x1, y1 = current_coord
+        x2, y2 = coord
+        distance = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+        result[key] = [coord, distance]
+        # [(17, 18), 62.289646009589745]
+
+    traits = interesting_traits(cur_wayp)
+    print("api call?")
+    recon_traits(cur_wayp, traits)
+
     exit()
     waypointsymbols = [waypoint.symbol for waypoint in systemwaypoints]
     print(waypointsymbols)
@@ -93,7 +123,7 @@ def _Recon_System(reconship: Ship):
     # print(interesting_traits(cur_wayp))
 
     interesting = interesting_traits(cur_wayp)
-    if interesting: 
+    if interesting:
         interesting_traits(cur_wayp)
     destinations.update(interesting_traits(cur_wayp))
     waypointsymbols.remove(cur_wayp)
@@ -102,7 +132,7 @@ def _Recon_System(reconship: Ship):
         destinations.update(interesting_traits(waypoint))
 
     # destinations = shipyards + markets
-    
+
     print(destinations)
     # exit()
     if cur_wayp in destinations:
@@ -115,7 +145,6 @@ def _Recon_System(reconship: Ship):
 
     # TODO check for recent data before flying to a market
     for wayp in destinations:
-
         navdata = st.Navigate(shipsymbol, wayp)
         if navdata:
             nav, _ = navdata
@@ -127,7 +156,8 @@ def _Recon_System(reconship: Ship):
             if wayp in markets:
                 st.Get_Market(wayp)
 
-# region Fly recon 
+
+# region Fly recon
 @app.command()
 def recon(symbol: str):
     """Send ship SYMBOL (ex: LEELOO-1) to all markets and shipyards in the ship's current system."""
@@ -156,17 +186,20 @@ def fly_to_markets():
     except psycopg2.ProgrammingError as e:
         print("Error fetching data:", e)
 
+
 # endregion
 
 # region mine stuff
 
-        
+
 def all_mining_ships(st: SpaceTraders):
     ships = list(st.ships.values())
     miners = [ship.symbol for ship in ships if ship.miner]
     return miners
 
+
 # endregion
+
 
 @app.command()
 def mine(symbol: str):
@@ -187,6 +220,7 @@ def _mine(miners=None, surveyor=None):
 
 # endregion
 
+
 # region selling stuff
 def prices():
     print(len(st.db_queue))
@@ -194,7 +228,9 @@ def prices():
     #     print('waiting')
     time.sleep(2)
     """Return most recent known price for all tradegoods in each system"""
-    st.cur.execute("""SELECT DISTINCT ON (waypointsymbol, symbol) waypointsymbol, symbol, purchase, sell, "timestamp" FROM prices ORDER BY waypointsymbol, symbol, "timestamp" DESC;""")
+    st.cur.execute(
+        """SELECT DISTINCT ON (waypointsymbol, symbol) waypointsymbol, symbol, purchase, sell, "timestamp" FROM prices ORDER BY waypointsymbol, symbol, "timestamp" DESC;"""
+    )
     # recent_prices = [row[0] for row in st.cur.fetchall()]
     print(st.cur.fetchall())
 
@@ -204,21 +240,20 @@ def prices():
 
 @app.command()
 def sell(shiparg: str = "all"):
-
     for ship in ship_command_argument(shiparg):
         _sell(ship)
 
 
 def _sell(shipsymbol: str):
-    '''Sell products on a single ship'''
+    """Sell products on a single ship"""
 
     all_prices = prices()
     # print(all_prices)
-# create a list of products to sell
+    # create a list of products to sell
     cargo = st.Get_Cargo(shipsymbol)
     for item in cargo.inventory:
         print(item.symbol, item.units)
-    
+
     # convert ['LEELOO-1','LEELOO-2'] to 'LEELOO-1','LEELOO-2'
     # result = ",".join([f"'{x}'" for x in ships])
 
@@ -229,17 +264,17 @@ def _sell(shipsymbol: str):
     # return to asteroid
     # extract
 
+
 # endregion
+
 
 @app.command()
 def test():
-    '''Scratch code goes here to run'''
+    """Scratch code goes here to run"""
     print(all_mining_ships(st))
 
 
-
 def db_connection():
-
     try:
         user = os.getenv("USER")
         db = os.getenv("DB")
@@ -250,20 +285,20 @@ def db_connection():
             dbname=db, user=user, password=os.getenv("PASSWORD"), host=ip, port=port
         )
     except psycopg2.Error as e:
-            logger.info("Boom")
+        logger.info("Boom")
 
     return conn.cursor()
 
 
 if __name__ == "__main__":
-    logger.info(f'iTraders started')
+    logger.info(f"iTraders started")
     st = SpaceTraders()
     st.Status()
     st.Login(os.getenv("TOKEN"))
     st.Init_Systems()
     st.Get_Ships()
     time.sleep(2)
-    
+
     # mycursor = db_connection()
     # logger.info(mycursor)
     # st.cur.execute(
@@ -278,7 +313,7 @@ if __name__ == "__main__":
     #         ORDER BY waypointsymbol, symbol, "timestamp" DESC;"""
     # )
     # st.conn.commit()
-    
+
     # try:
     #     st.cur.execute("""CREATE VIEW IF NOT EXISTS recent_prices AS SELECT DISTINCT ON (waypointsymbol, symbol) waypointsymbol, symbol, purchase, sell, "timestamp" FROM prices ORDER BY waypointsymbol, symbol, "timestamp" DESC;""")
     #     st.conn.commit()

@@ -274,6 +274,7 @@ class SpaceTraders:
                                 list(temp),
                             )
                         self.conn.commit()
+                        self.logger("where have all the trade goods gone")
                     elif q_obj.type == Queue_Obj_Type.SHIPYARD:
                         yard: list[Shipyard] = q_obj.data
                         temp = []
@@ -1197,9 +1198,9 @@ if __name__ == "__main__":
     # ships = list(st.ships.values())
     # ship = list(st.ships.values())[0]
 
-    # ships = list(st.ships.values())
-    # miners = [ship.symbol for ship in ships if ship.miner]
-    # print(miners)
+    ships = list(st.ships.values())
+    miners = [ship.symbol for ship in ships if ship.isminer]
+    print(f"miners are {miners}")
 
     # survey = Survey(json.loads('{"signature": "X1-UY52-72325C-B211DC","symbol": "X1-UY52-72325C","deposits": [{"symbol": "SILVER_ORE"},{"symbol": "ICE_WATER"},{"symbol": "ICE_WATER"}],"expiration": "2023-05-21T00:15:59.841Z","size": "MODERATE"}'))
     # pprint(st.Extract(ship.symbol,survey))
@@ -1208,6 +1209,8 @@ if __name__ == "__main__":
     # st.Get_Shipyard("X1-UY52-72027D")
     TEST_SYSTEM = "X1-VS75"
     TEST_WAYPOINT = "X1-VS75-93799Z"
+
+    st.Get_Market('X1-GT12-68884F')
 
     # ## JUMP TEST 
     # gate = st.Get_JumpGate(TEST_WAYPOINT)
