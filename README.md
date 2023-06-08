@@ -15,10 +15,19 @@ py api.py
 - [ ] add monitoring, measure time of the requests and send them to the db aswell
 - [ ] add cooldown to database
 - [ ] add contracts to database
-- [ ] add surveys to database
+- [x] add surveys to database
+- [ ] add which ship surveyed
 - [ ] add agent to database
-- [ ] add extractions to database
+- [x] add extractions to database
 - [ ] add transactions to database
+- [x] add new endpoints
+- [ ] shipyards: transactions
+- [ ] shipyardsships: requirements
+- [x] shipyards, shipyardsships with mounts etc
+
+## Generator 
+- implement enums
+- implement jsons like ShipCondition
 
 ## Documentation for API Endpoints
 
@@ -35,6 +44,7 @@ Class          | HTTP request  | Description   | Implemented
 | *Contracts*  | **post** /my/contracts/{contractId}/fulfill | Fulfill a contract | statekeeping
 | *Factions*   | **get** /factions | List all discovered factions in the game. | statekeeping & db
 | *Factions*   | **get** /factions/{factionSymbol} | View the details of a faction. | statekeeping & db
+| *Factions*   | **get** /my/factions | Get your faction reputation |
 | *Fleet*      | **get** /my/ships | Retrieve all of your ships. | statekeeping & db
 | *Fleet*      | **post** /my/ships | Purchase a ship | statekeeping & db/2
 | *Fleet*      | **get** /my/ships/{shipSymbol} | Retrieve the details of your ship. |  statekeeping & db
@@ -60,6 +70,9 @@ Class          | HTTP request  | Description   | Implemented
 | *Fleet*      | **post** /my/ships/{shipSymbol}/refuel | Refuel Ship | statekeeping & db
 | *Fleet*      | **post** /my/ships/{shipSymbol}/purchase | Purchase Cargo | statekeeping & db
 | *Fleet*      | **post** /my/ships/{shipSymbol}/transfer | Transfer Cargo | statekeeping & db
+| *Fleet*      | **get** /my/ships/{shipSymbol}/mounts | Get the mounts on a ship.
+| *Fleet*      | **post** /my/ships/{shipSymbol}/mounts | Install a mount on a ship.
+| *Fleet*      | **post** /my/ships/{shipSymbol}/mounts/remove | Remove a mount from a ship.
 | *Systems*    | **get** /systems | List Systems | statekeeping & db
 | *Systems*    | **get** /systems.json | Get all systems. |  statekeeping & db
 | *Systems*    | **get** /systems/{systemSymbol} | Get System | statekeeping & db

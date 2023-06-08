@@ -1,8 +1,9 @@
 # upstream
-ratelimit
+# ratelimit
 requests
 python-dotenv
-psycopg2
+psycopg2-binary
+pydantic
 
 # iPaulo
 rich
