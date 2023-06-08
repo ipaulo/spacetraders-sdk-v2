@@ -3,7 +3,12 @@ ratelimit
 requests
 python-dotenv
 psycopg2
+requests
+python-dotenv
+psycopg2-binary
+pydantic
 
 # iPaulo
 rich
 typer
+
