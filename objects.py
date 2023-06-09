@@ -387,6 +387,20 @@ class Ship:
     modules: list[ShipModule]
     crew: ShipCrew
     frame: ShipFrame
+    isminer: bool
+    issurveyor: bool
+
+    miningmodules = [
+        ShipMountType.MOUNT_MINING_LASER_I,
+        ShipMountType.MOUNT_MINING_LASER_II,
+        ShipMountType.MOUNT_MINING_LASER_III,
+    ]
+
+    surveymodules = [
+        ShipMountType.MOUNT_SURVEYOR_I,
+        ShipMountType.MOUNT_SURVEYOR_II,
+        ShipMountType.MOUNT_SURVEYOR_III,
+    ]
 
     def __init__(self, data) -> None:
         self.symbol = data["symbol"]
@@ -400,6 +414,13 @@ class Ship:
         self.frame = ShipFrame(data["frame"])
         self.mounts = [ShipMount(x) for x in data["mounts"]]
         self.modules = [ShipModule(x) for x in data["modules"]]
+
+        self.isminer = any(
+            mount.symbol in self.miningmodules for mount in self.mounts
+        )
+        self.issurveyor = any(
+            mount.symbol in self.surveymodules for mount in self.mounts
+        )
 
 
 @dataclass
@@ -455,6 +476,9 @@ class WaypointTrait:
             + self.description
             + "')"
         )
+    
+    def __contain__(self,item):
+         return any(trait.name == item for trait in self.traits)
 
 
 @dataclass
@@ -756,6 +780,7 @@ class Extraction:
     def __init__(self, data) -> None:
         self.yield_ = ExtractionYield(data["yield"])
         self.shipSymbol = data["shipSymbol"]
+
 
 @dataclass
 class Error:

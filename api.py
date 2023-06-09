@@ -315,6 +315,7 @@ class SpaceTraders:
                                 TIMESTAMP = EXCLUDED.TIMESTAMP""",
                                 list(temp))
                         self.conn.commit()
+                        self.logger("where have all the trade goods gone")
                     elif q_obj.type == Queue_Obj_Type.SHIPYARD:
                         yards: list[Shipyard] = q_obj.data
                         temp = []
@@ -1502,7 +1503,96 @@ class SpaceTraders:
 
 if __name__ == "__main__":
     st = SpaceTraders()
-    
-    if st.use_db:
-        while len(st.db_queue) > 0:
-            time.sleep(2)
+    st.Status()
+
+    # pprint(st.Register("feba_66","ASTRO"))
+    st.Login(os.getenv("TOKEN"))
+    # pprint(st.Get_Contracts())
+    # c_id = "clhmfp5wa0734s60dmss50pes"
+    # st.Navigate()
+    # pprint(st.Accept_Contract(c_id))
+    # exit()
+    # pprint(st.Register("test_9871","CULT"))
+    # exit()
+    # st.Get_Systems(limit=3)
+    # pprint(st.Get_Waypoint("X1-AC10-73119Z"))
+    # st.Get_Market("X1-JP81-52264Z")
+    # exit()
+    st.Init_Systems()
+    # st.Purchase_Ship("SHIP_ORE_HOUND","X1-UY52-72027D")
+    st.Get_Ships()
+    ship = list(st.ships.values())[0]
+
+    # survey = Survey(json.loads('{"signature": "X1-UY52-72325C-B211DC","symbol": "X1-UY52-72325C","deposits": [{"symbol": "SILVER_ORE"},{"symbol": "ICE_WATER"},{"symbol": "ICE_WATER"}],"expiration": "2023-05-21T00:15:59.841Z","size": "MODERATE"}'))
+    # pprint(st.Extract(ship.symbol,survey))
+    # nav, fuel = st.Navigate(ship.symbol, "X1-UY52-72325C")
+    # st.sleep_till(nav)
+    # st.Get_Shipyard("X1-UY52-72027D")
+    # gate = st.Get_JumpGate("X1-AC10-73119Z")
+    # pprint(gate.connectedSystems[0:10])
+    # wps,_ = st.Get_Waypoints("X1-SR51")
+    # warpGoal = ""
+    # for w in wps:
+    #     if st.waypoints[w].type == WaypointType.JUMP_GATE:
+    #         warpGoal=w
+    #         break
+    # pprint(st.Jump(ship.symbol,"X1-AC10"))
+    # pprint(st.Warp(ship.symbol,"X1-AC10-73119Z"))
+    time.sleep(1)
+    if True:
+        st.cur.execute(
+            """select systemsymbol from waypoints
+               where 'UNCHARTED' = any(traits)
+               group by systemsymbol"""
+        )
+        st.conn.commit()
+        todo = [p[0] for p in st.cur.fetchall()]
+
+        for t in todo:
+            l, meta = st.Get_Waypoints(t)
+            if meta.total > 20:
+                st.Get_Waypoints(t, 2)
+    if False:
+        st.cur.execute(
+            """select systemsymbol from waypoints
+                        group by systemsymbol"""
+        )
+        st.conn.commit()
+        known = [p[0] for p in st.cur.fetchall()]
+
+        for syskey in st.systems.keys():
+            sys = st.systems[syskey]
+            if sys.symbol not in known:
+                l, meta = st.Get_Waypoints(sys.symbol)
+                if meta.total > 20:
+                    st.Get_Waypoints(sys.symbol, 2)
+    if False:
+        st.cur.execute(
+            """select symbol from waypoints
+                        where 'SHIPYARD' = any (traits)"""
+        )
+        st.conn.commit()
+        shipyards = [p[0] for p in st.cur.fetchall()]
+        for market in shipyards:
+            st.Get_Shipyard(market)
+    if False:
+        st.cur.execute(
+            """select symbol from waypoints
+                        where 'MARKETPLACE' = any (traits)"""
+        )
+
+        st.conn.commit()
+        markets = [p[0] for p in st.cur.fetchall()]
+        for market in markets:
+            st.Get_Market(market)
+    # st.Get_Market("X1-DF55-17335A")
+    # pprint(st.Get_Agent())
+    # pprint(st.Get_Ships())
+    # pprint(st.Get_Waypoints(ship.nav.systemSymbol))
+    # pprint(st.Navigate(ship.symbol,"X1-AC10-39507F"))
+    # pprint(st.Get_Market("X1-AC10-39507F"))
+    # pprint(st.Get_Shipyard("X1-AC10-39507F"))
+    # st.Init_Systems()
+    print("done")
+    while len(st.db_queue) > 0:
+        time.sleep(3)

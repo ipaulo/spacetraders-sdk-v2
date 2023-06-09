@@ -1,0 +1,10 @@
+[tool.ruff]
+
+include = ["itraders.py"]
+extend-exclude = ["Include/*", "Scripts/*"]
+
+select = [
+  "E",   # pycodestyle
+  "F",   # pyflakes
+  "I",
+]

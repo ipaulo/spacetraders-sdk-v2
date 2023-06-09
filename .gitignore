@@ -1,6 +1,8 @@
 # spacetrader spezific
 systems.json*
 oldsystems
+gen
+*.log_*
 
 # venv
 pyvenv.cfg
